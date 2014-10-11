@@ -16,6 +16,9 @@ import hot.lint
 import hot.tests
 import hot.utils
 
+from hot.utils.token import get_token
+from hot.utils.catalog import get_service_endpoint
+
 
 ENV_VARS = ['OS_PASSWORD', 'OS_USERNAME', 'OS_TENANT_ID', 'OS_AUTH_URL',
             'HEAT_URL']
@@ -32,6 +35,10 @@ def verify_environment_vars(variables):
             if not os.environ.get('OS_AUTH_TOKEN'):
                 raise KeyError("Tool requires either OS_PASSWORD or OS_AUTH_TO"
                                "KEN to be set.")
+        elif variable == 'HEAT_URL':
+            if not os.environ.get('OS_REGION_NAME'):
+                raise KeyError("Tool requires OS_REGION_NAME to be set if "
+                               "HEAT_URL is not defined.")
         else:
             raise KeyError("%s not set. Tool requires the following enviro"
                            "nmental variables to be set %s" % (variable,
@@ -216,11 +223,23 @@ def do_template_test(args):
     auth_token = os.environ.get('OS_AUTH_TOKEN')
     if not auth_token:
         os_password = os.environ['OS_PASSWORD']
-        auth_token = hot.utils.token.get_token(os.environ['OS_AUTH_URL'],
-                                               os.environ['OS_USERNAME'],
-                                               password=os_password)
+        auth_token = get_token(os.environ['OS_AUTH_URL'],
+                               os.environ['OS_USERNAME'],
+                               password=os_password)
 
-    hc = heatClient(endpoint=os.environ['HEAT_URL'], token=auth_token)
+    heat_region = os.environ.get('OS_REGION_NAME', 'iad')
+    heat_url = os.environ.get('HEAT_URL')
+    if not heat_url:
+        heat_url = get_service_endpoint(heat_region,
+                                        'cloudOrchestration',
+                                        os.environ['OS_AUTH_URL'],
+                                        os.environ['OS_USERNAME'],
+                                        password=os_password)
+        if not heat_url:
+            raise Exception("No heat endpoint found "
+                            "for region {}".format(heat_region))
+
+    hc = heatClient(endpoint=heat_url, token=auth_token)
 
     if test_cases:
         user_tests = []
