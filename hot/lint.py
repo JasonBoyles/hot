@@ -181,10 +181,15 @@ class MetadataRequiredSections(TemplateLintRule):
                              'application-name', 'application-version',
                              'flavor', 'flavor-weight', 'reach-info',
                              'abstract', 'instructions']
+        missing_sections = []
         for section in required_sections:
             if section not in self.metadata:
-                return False
-        return True
+                missing_sections.append(section)
+        if missing_sections:
+            self.message('these are missing: {}'.format(', '.join(unlabelled_groups)))
+            return False
+        else:
+            return True
 
 
 class MetadataReachImagesDefined(TemplateLintRule):
