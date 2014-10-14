@@ -116,10 +116,15 @@ class TemplateLintParameterDescriptionCheck(TemplateLintRule):
 
     def passes_check(self):
         parameters = self.template['parameters']
+        undescribed_params = []
         for parameter, values in parameters.items():
             if 'description' not in values:
-                return False
-        return True
+                undescribed_params.append(parameter)
+        if undescribed_params:
+            self.message("fix these: {}".format(", ".join(undescribed_params)))
+            return False
+        else:
+            return True
 
 
 class TemplateLintParameterConstraintCheck(TemplateLintRule):
@@ -150,10 +155,15 @@ class TemplateLintParameterGroupLabelCheck(TemplateLintRule):
 
     def passes_check(self):
         parameter_groups = self.template['parameter_groups']
+        unlabelled_groups = []
         for group in parameter_groups:
             if 'label' not in group:
-                return False
-        return True
+                unlabelled_groups.append(group)
+        if unlabelled_groups:
+            self.message('fix these: {}'.format(', '.join(unlabelled_groups)))
+            return False
+        else:
+            return True
 
 
 class MetadataRequiredSections(TemplateLintRule):
