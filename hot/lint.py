@@ -60,10 +60,15 @@ class TemplateLintRequiredSections(TemplateLintRule):
         required_sections = ['heat_template_version', 'description',
                              'parameter_groups', 'parameters', 'resources',
                              'outputs']
+        missing_sections = []
         for section in required_sections:
             if section not in self.template:
-                return False
-        return True
+                missing_sections.append(section)
+        if missing_sections:
+            self.message("add these sections: {}".format(", ".join(missing_sections)))
+            return False
+        else:
+            return True
 
 
 class TemplateLintOutputChecks(TemplateLintRule):
