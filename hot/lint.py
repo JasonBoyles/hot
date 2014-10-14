@@ -201,10 +201,15 @@ class MetadataReachImagesDefined(TemplateLintRule):
 
     def passes_check(self):
         images = ['tattoo', 'icon-20x20']
+        missing_images = []
         for image in images:
             if image not in self.metadata['reach-info']:
-                return False
-        return True
+                missing_images.append(image)
+        if missing_images:
+            self.message('add these to rackspace.yaml: {}'.format(', '.join(missing_images)))
+            return False
+        else:
+            return True
 
 
 class MetadataReachImagesAvailable(TemplateLintRule):
