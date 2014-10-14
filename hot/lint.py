@@ -121,10 +121,15 @@ class TemplateLintParameterConstraintCheck(TemplateLintRule):
 
     def passes_check(self):
         parameters = self.template['parameters']
+        incomplete_parameters = []
         for parameter, values in parameters.items():
             if 'constraints' not in values:
-                return False
-        return True
+                incomplete_parameters.append(parameter)
+        if incomplete_parameters:
+            self.message('these do not: {}'.format(', '.join(incomplete_parameters)))
+            return False
+        else:
+            return True
 
 
 class TemplateLintParameterGroupLabelCheck(TemplateLintRule):
