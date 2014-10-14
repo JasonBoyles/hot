@@ -96,10 +96,15 @@ class TemplateLintParameterLabelCheck(TemplateLintRule):
 
     def passes_check(self):
         parameters = self.template['parameters']
+        unlabelled_parameters = []
         for parameter, values in parameters.items():
             if 'label' not in values:
-                return False
-        return True
+                unlabelled_parameters.append(parameter)
+        if unlabelled_parameters:
+          self.message("add a label to these: {}".format(", ".join(unlabelled_parameters)))
+          return False
+        else:
+          return True
 
 
 class TemplateLintParameterDescriptionCheck(TemplateLintRule):
