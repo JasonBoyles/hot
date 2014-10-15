@@ -65,7 +65,8 @@ class TemplateLintRequiredSections(TemplateLintRule):
             if section not in self.template:
                 missing_sections.append(section)
         if missing_sections:
-            self.message("add these sections: {}".format(", ".join(missing_sections)))
+            msg_template = "add these sections: {}"
+            self.message(msg_template.format(", ".join(missing_sections)))
             return False
         else:
             return True
@@ -101,10 +102,11 @@ class TemplateLintParameterLabelCheck(TemplateLintRule):
             if 'label' not in values:
                 unlabelled_parameters.append(parameter)
         if unlabelled_parameters:
-          self.message("add a label to these: {}".format(", ".join(unlabelled_parameters)))
-          return False
+            msg_template = "add a label to these: {}"
+            self.message(msg_template.format(", ".join(unlabelled_parameters)))
+            return False
         else:
-          return True
+            return True
 
 
 class TemplateLintParameterDescriptionCheck(TemplateLintRule):
@@ -121,7 +123,8 @@ class TemplateLintParameterDescriptionCheck(TemplateLintRule):
             if 'description' not in values:
                 undescribed_params.append(parameter)
         if undescribed_params:
-            self.message("fix these: {}".format(", ".join(undescribed_params)))
+            msg_template = "fix these: {}"
+            self.message(msg_template.format(", ".join(undescribed_params)))
             return False
         else:
             return True
@@ -141,7 +144,8 @@ class TemplateLintParameterConstraintCheck(TemplateLintRule):
             if 'constraints' not in values:
                 incomplete_parameters.append(parameter)
         if incomplete_parameters:
-            self.message('these do not: {}'.format(', '.join(incomplete_parameters)))
+            msg_template = 'these do not: {}'
+            self.message(msg_template.format(', '.join(incomplete_parameters)))
             return False
         else:
             return True
@@ -186,7 +190,8 @@ class MetadataRequiredSections(TemplateLintRule):
             if section not in self.metadata:
                 missing_sections.append(section)
         if missing_sections:
-            self.message('these are missing: {}'.format(', '.join(unlabelled_groups)))
+            msg_template = 'these are missing: {}'
+            self.message(msg_template.format(', '.join(missing_sections)))
             return False
         else:
             return True
@@ -206,7 +211,8 @@ class MetadataReachImagesDefined(TemplateLintRule):
             if image not in self.metadata['reach-info']:
                 missing_images.append(image)
         if missing_images:
-            self.message('add these to rackspace.yaml: {}'.format(', '.join(missing_images)))
+            msg_template = 'add these to rackspace.yaml: {}'
+            self.message(msg_template.format(', '.join(missing_images)))
             return False
         else:
             return True
@@ -221,9 +227,21 @@ class MetadataReachImagesAvailable(TemplateLintRule):
 
     def passes_check(self):
         images = ['tattoo', 'icon-20x20']
+        broken_images = []
         for image in images:
             if image in self.metadata['reach-info']:
                 img = requests.get(self.metadata['reach-info'][image])
                 if not img.ok:
-                    return False
-        return True
+                    broken_images.append({'type': 'image',
+                                          'error': img.status_code})
+
+        if broken_images:
+            msg_template = 'these failed to load: {}'
+            error_strings = []
+            for error in broken_images:
+                error_strings.append('{}: error {}'.format(error['type'],
+                                                           error['error']))
+            self.message(msg_template.format(','.join(error_strings)))
+            return False
+        else:
+            return True
