@@ -4,6 +4,7 @@ python:
   - "3.4"
 install:
   - pip install -r requirements.txt --use-mirrors
-  - pip install pep8
+  - pip install flake8
 script:
-  - pep8 hot
+  - pip install .
+  - flake8 hot
