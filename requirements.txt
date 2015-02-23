@@ -7,6 +7,7 @@ argparse==1.2.1
 ecdsa==0.11
 envassert==0.1.7
 iso8601==0.1.10
+Markdown==2.6
 netaddr==0.7.12
 oslo.config==1.4.0
 oslo.i18n==1.0.0
@@ -16,6 +17,7 @@ paramiko==1.15.1
 pbr==0.10.0
 prettytable==0.7.2
 pycrypto==2.6.1
+pyquery==1.2.9
 python-heatclient==0.2.12
 python-keystoneclient==0.11.2
 pytz==2014.7

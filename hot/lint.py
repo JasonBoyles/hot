@@ -1,5 +1,8 @@
 import requests
 
+from pyquery import PyQuery as pq
+from markdown import markdown
+
 RULES = [
     "TemplateLintRequiredSections",
     "TemplateLintOutputChecks",
@@ -9,7 +12,8 @@ RULES = [
     "TemplateLintParameterGroupLabelCheck",
     "MetadataRequiredSections",
     "MetadataReachImagesDefined",
-    "MetadataReachImagesAvailable"
+    "MetadataReachImagesAvailable",
+    "ReadmeURLsAvailable"
 ]
 
 
@@ -192,3 +196,50 @@ class MetadataReachImagesAvailable(TemplateLintRule):
                 if not img.ok:
                     return False
         return True
+
+
+class ReadmeURLsAvailable(TemplateLintRule):
+    """Verify that URLs linked in README.md are valid and accessible"""
+    def set_name(self):
+        self.name = "LINT-010"
+        self.description = "all URLs referenced in the README.md should be" \
+                           "accessible."
+
+    def links_from_html(self, html):
+        document = pq(html)
+        links = []
+        for anchor in document('a'):
+            link = anchor.get('href')
+            if link.startswith("http"):
+                links.append(link)
+        return links
+
+    def verify_link_statuses(self, link_statuses):
+        links_ok = True
+        for link_status in link_statuses:
+            if not link_status.get("status") == 200:
+                print "link {} returned {}".format(
+                    link_status.get("link"),
+                    link_status.get("status"))
+                links_ok = False
+        return links_ok
+
+    def get_link_statuses(self, links):
+        link_statuses = []
+        for link in links:
+            r = requests.head(link, allow_redirects=True, verify=False)
+            link_statuses.append({"link": link, "status": r.status_code})
+            print "link {} returned status {}".format(link, r.status_code)
+        return link_statuses
+
+    def links_are_good(self, html):
+        links = self.links_from_html(html)
+        link_statuses = self.get_link_statuses(links)
+        return self.verify_link_statuses(link_statuses)
+
+    def passes_check(self):
+        html = markdown(open("README.md").read())
+        if self.links_are_good(html):
+            return True
+        else:
+            return False
